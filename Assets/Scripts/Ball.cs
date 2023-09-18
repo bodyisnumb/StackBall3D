@@ -6,7 +6,8 @@ using UnityEngine.UIElements;
 public class Ball : MonoBehaviour
 {
     private Rigidbody rb;
-    private bool smash;
+    private float currentTime;
+    private bool smash, invincible;
 
     void Awake()
     {
@@ -20,6 +21,31 @@ public class Ball : MonoBehaviour
 
         if(Input.GetMouseButtonUp(0))
             smash = false;
+
+        if(invincible)
+        {
+            currentTime -= Time.deltaTime * .35f;
+        }
+        else
+        {
+            if(smash)
+                currentTime += Time.deltaTime * .8f;
+            else
+                currentTime -= Time.deltaTime * .5f;
+        }
+
+        if(currentTime >= 1)
+        {
+            currentTime = 1;
+            invincible = true;
+        }
+
+        else if (currentTime <= 0)
+        {
+            currentTime = 0;
+            invincible = false;
+        }
+        print(invincible);
     }
 
     void FixedUpdate()
@@ -40,6 +66,19 @@ public class Ball : MonoBehaviour
         {
             rb.velocity = new Vector3(0, 50 * Time.deltaTime * 5, 0);
         }
+
+        else
+        {
+            if(target.gameObject.tag == "enemy")
+            {
+                Destroy(target.transform.parent.gameObject);
+            }
+
+            if(target.gameObject.tag == "plane")
+            {
+                print("Over");
+            }
+        }
     }
 
     void OnCollisionStay(Collision target)
@@ -49,4 +88,6 @@ public class Ball : MonoBehaviour
             rb.velocity = new Vector3(0, 50 * Time.deltaTime * 5, 0);
         }
     }
+
+
 }
