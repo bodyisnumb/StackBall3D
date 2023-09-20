@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class LevelSpawner : MonoBehaviour
 {
@@ -16,6 +17,8 @@ public class LevelSpawner : MonoBehaviour
 
     void Start()
     {
+        level = PlayerPrefs.GetInt("Level", 1);
+
         if(level > 9)
             addOn = 0;
         
@@ -88,4 +91,11 @@ public class LevelSpawner : MonoBehaviour
             
         }
     }
+
+    public void NextLevel()
+    {
+        PlayerPrefs.SetInt("Level", PlayerPrefs.GetInt("Level") + 1);
+        SceneManager.LoadScene(0);
+    }
+
 }
