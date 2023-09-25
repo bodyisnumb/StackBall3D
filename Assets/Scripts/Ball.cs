@@ -1,13 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class Ball : MonoBehaviour
 {
     private Rigidbody rb;
     private float currentTime;
     private bool smash, invincible;
+
+    private int currentBrokenStacks, totalStacks;
+
+    public GameObject invincibleObj;
+    public Image invincibleFill;
+    public GameObject fireEffect;
 
     public enum BallState
     {
@@ -25,6 +31,12 @@ public class Ball : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        currentBrokenStacks = 0;
+    }
+
+    void Start()
+    {
+        totalStacks = FindObjectsOfType<StackController>().Length;
     }
 
     void Update()
@@ -40,26 +52,42 @@ public class Ball : MonoBehaviour
             if(invincible)
             {
                 currentTime -= Time.deltaTime * .35f;
+                if(!fireEffect.activeInHierarchy)
+                    fireEffect.SetActive(true);
             }
             else
             {
+                if(fireEffect.activeInHierarchy)
+                    fireEffect.SetActive(false);
+
                 if(smash)
                     currentTime += Time.deltaTime * .8f;
                 else
                     currentTime -= Time.deltaTime * .5f;
             }
 
+            if(currentTime >= .3f || invincibleFill.color == Color.red)
+                invincibleObj.SetActive(true);
+            else
+                invincibleObj.SetActive(false);
+
             if(currentTime >= 1)
             {
                 currentTime = 1;
                 invincible = true;
+                invincibleFill.color = Color.red;
             }
 
             else if (currentTime <= 0)
             {
                 currentTime = 0;
                 invincible = false;
+                invincibleFill.color = Color.white;
             }
+
+            if(invincibleObj.activeInHierarchy)
+                invincibleFill.fillAmount = currentTime / 1;
+
         }
 
         if(ballState == BallState.Prepare)
@@ -92,6 +120,8 @@ public class Ball : MonoBehaviour
 
     public void IncreaseBrokenStacks()
     {
+        currentBrokenStacks++;
+
         if(!invincible)
         {
             ScoreManager.instance.AddScore(1);
@@ -137,6 +167,8 @@ public class Ball : MonoBehaviour
                 }
             }
         }
+
+        FindObjectOfType<GameUI>().LevelSliderFill(currentBrokenStacks / (float)totalStacks);
 
         if(target.gameObject.tag == "Finish" && ballState == BallState.Playing)
         {
