@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class GameUI : MonoBehaviour
 {
-    public GameObject homeUI, inGameUI;
+    public GameObject homeUI, inGameUI, finishUI, gameOverUI;
     public GameObject allButtons;
 
     private bool buttons;
@@ -19,6 +20,14 @@ public class GameUI : MonoBehaviour
     public Image levelSlider;
     public Image currentLevelImg;
     public Image nextLevelImg;
+    public Text currentLevelText, nextLevelText;
+
+    [Header("Finish")]
+    public Text finishLevelText;
+
+    [Header("GameOver")]
+    public Text gameOverScoreText;
+    public Text gameOverBestText;
 
     private Material ballMat;
     private Ball ball;
@@ -36,6 +45,11 @@ public class GameUI : MonoBehaviour
         soundButton.onClick.AddListener(() => SoundManager.instance.SoundOnOff());
     }
 
+    private void Start()
+    {
+        currentLevelText.text = FindObjectOfType<LevelSpawner>().level.ToString();
+        nextLevelText.text = FindObjectOfType<LevelSpawner>().level + 1 + "";
+    }
     void Update()
     {
         if(ball.ballState == Ball.BallState.Prepare)
@@ -51,7 +65,36 @@ public class GameUI : MonoBehaviour
             ball.ballState = Ball.BallState.Playing;
             homeUI.SetActive(false);
             inGameUI.SetActive(true);
+            finishUI.SetActive(false);
+            gameOverUI.SetActive(false);
         }  
+
+        if(ball.ballState == Ball.BallState.Finish)
+        {
+            homeUI.SetActive(false);
+            inGameUI.SetActive(false);
+            finishUI.SetActive(true);
+            gameOverUI.SetActive(false);
+
+            finishLevelText.text = "Level " + FindObjectOfType<LevelSpawner>().level;
+        }
+
+        if(ball.ballState == Ball.BallState.Died)
+        {
+            homeUI.SetActive(false);
+            inGameUI.SetActive(false);
+            finishUI.SetActive(false);
+            gameOverUI.SetActive(true);
+
+            gameOverScoreText.text = ScoreManager.instance.score.ToString();
+            gameOverBestText.text = PlayerPrefs.GetInt("HighScore").ToString();
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                ScoreManager.instance.ResetScore();
+                SceneManager.LoadScene(0);
+            }
+        }
     }
 
     private bool IgnoreUI()
